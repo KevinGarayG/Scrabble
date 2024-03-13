@@ -73,7 +73,6 @@ int main(){
     // leer letras, esto deberia estar en un ciclo por si no se puede leer.
     list<Letra> letras = leerletras("letras.txt");
     if (letras.empty()) {
-        cout << "No se pudo leer el archivo de letras" << endl;
         return 0;
     }
     // Información sobre el uso de la terminal
@@ -84,36 +83,38 @@ int main(){
         // Entrada de comandos 
         cout << " $  ";
         getline(cin, command);
+
         // Bloque de condicionales para cada comando
         if (command.substr(0, 5) == "ayuda") {
             executeCommand(command);
         }
-        else if (command == "inicializar diccionario.txt") {
+        else if (command.substr(0, 11) == "inicializar") {
             if (!diccionario.palabras_is_empty()){
-                cout << "(Diccionario ya inicializado) El diccionario ya ha sido inicializado." << endl;
+                cout << "El diccionario ya ha sido inicializado.\n" << endl;
             } else {
-                inicializarDiccionario("diccionario.txt", diccionario, false);
+                inicializarDiccionario(command.substr(12), diccionario, false);
             }
-        } else if (command == "iniciar_inverso diccionario.txt") {
+        } else if (command.substr(0, 15) == "iniciar_inverso") {
             if (!diccionario.palabras_inversas_is_empty()){
-                cout << "(Diccionario ya inicializado) El diccionario inverso ya ha sido inicializado." << endl;
+                cout << "El diccionario inverso ya ha sido inicializado.\n" << endl;
             } else {
-                inicializarDiccionario("diccionario.txt", diccionario, true);
+                inicializarDiccionario(command.substr(16), diccionario, true);
             }        
         } else if (command == "puntaje palabra") {
             cout << "\nFuncion de puntaje de palabra ingresada\n";
             cout << "Ingrese la palabra: ";
             string word;
             cin >> word;
-            cout << puntaje_palabra(word, letras, diccionario);
+            cin.ignore();
+            cout << puntaje_palabra(word, letras, diccionario) << endl;
         } else if (command == "salir") {
             exit(0);
         } else {
             cout << "Comando no reconocido" << endl;
         }
-        command = "";
     }
 }
+
 
 /* Función encargada de leer un archivo txt que contiene las letras del ingles y sus respectivos puntajes */
 list<Letra> leerletras(string nombreArch) {
@@ -135,7 +136,7 @@ list<Letra> leerletras(string nombreArch) {
         return letras;
     }
     else {
-        cout << "El archivo letras.txt no ha sido leído, se requiere revisión de archivo.";
+        cout << endl << "El archivo letras.txt no ha sido leído, se requiere revisión de archivo.\n" << endl;
         // retorna un lista vacia en caso de no poder leer el archivo
         return letras;
     }
@@ -182,23 +183,25 @@ bool inicializarDiccionario(const string& nomArchivo, Diccionario& diccionario, 
     string palabra;
 
     if (!fin.is_open()) {
-        cout << "(Archivo no existe) El archivo" << nomArchivo << "no existe o no puede ser leído." << endl;
+        cout << "El archivo " << nomArchivo << " no existe o no puede ser leído.\n" << endl;
         return true;
     }
 
     while (fin >> palabra) {
         if (all_of(palabra.begin(), palabra.end(), ::isalpha)) {
+            Palabra p;
             if (invertir) {
                 reverse(palabra.begin(), palabra.end());
+                p.palabra = palabra;
+                diccionario.palabras_inversas.push_back(p);
             }
-            Palabra p;
             p.palabra = palabra;
             diccionario.palabras.push_back(p);
         }
     }
     fin.close();
     string str = (!invertir) ? "diccionario" : "diccionario inverso";
-    cout << "(Resultado exitoso) El " << str << " se ha inicializado correctamente." << endl;
+    cout << "El " << str << " se ha inicializado correctamente.\n" << endl;
     return true;
 }
 
@@ -219,7 +222,7 @@ string puntaje_palabra(string word, list<Letra> letras, Diccionario &diccionario
 
     // Verificar que la palabra contenga solo letras
     if (!all_of(word.begin(), word.end(), ::isalpha))
-        return "(Letras inválidas) La palabra " + word + "  contiene símbolos inválidos.";
+        return "La palabra " + word + "  contiene símbolos inválidos.\n";
 
     reverse(word_inv.begin(), word_inv.end());
 
@@ -241,5 +244,5 @@ string puntaje_palabra(string word, list<Letra> letras, Diccionario &diccionario
         it2->puntos = puntaje;
     }
 
-    return "(Resultado exitoso) La palabra " + word + " tiene un puntaje de: " + to_string(puntaje);
+    return "La palabra " + word + " tiene un puntaje de: " + to_string(puntaje) + "\n";
 }

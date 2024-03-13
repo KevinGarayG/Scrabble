@@ -1439,6 +1439,7 @@ itself
 jacket
 jail
 Japanese
+jazz
 jet
 Jew
 Jewish
