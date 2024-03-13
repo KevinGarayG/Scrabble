@@ -18,11 +18,8 @@ Este proyecto consiste en un Sistema de Apoyo para el Juego Scrabble implementad
      - `puntaje palabra`: Calcula el puntaje de una palabra ingresada por el usuario.
      - `salir`: Termina la ejecución del programa.
 
-3. **Tipos Abstractos de Datos (TADs):**
-   - Se utilizan TADs para representar las letras, palabras y el diccionario del juego.
-   - Cada TAD tiene atributos y operaciones específicas para su manejo.
 
-4. **Funciones Principales:**
+3. **Funciones Principales:**
    - `leerletras(string nombreArch)`: Lee el archivo "letras.txt" y devuelve una lista de letras con sus puntajes.
    - `executeCommand(string command)`: Maneja los comandos ingresados por el usuario y proporciona ayuda según sea necesario.
    - `inicializarDiccionario(const string& nomArchivo, Diccionario& diccionario, bool invertir)`: Inicializa el diccionario a partir de un archivo de texto.
