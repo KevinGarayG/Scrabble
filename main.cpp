@@ -1,4 +1,4 @@
-/* Fecha: 12 mar 2024
+/* Fecha: 12 marzo 2024
    Autor: Kevin Garay, Felipe Garrido , Arley Bernal
    Materia: Estructura de Datos
    Proyecto: Sistema de apoyo para el juego Scrabble
@@ -14,217 +14,232 @@
 
 using namespace std;
 
-// configuración de comandos
+// Estructura de dato de tipo mapa para guardar la configuración de comandos
 map<string, map<string, string>> ayuda = {
     {"Configuración del juego.",
      {{"inicializar diccionario.txt",
-       "Este comando inicializa un diccionario de palabras"},
+       "Inicializa el sistema a partir del archivo diccionario.txt"},
       {"iniciar_inverso diccionario.txt",
-       "Este comando inicializa un diccionario de palabras inversas"},
-      {"iniciar_puntaje palabra",
-       "Este comando calcula el puntaje de una persona dada"},
-      {"salir", "Termina la ejecución de la aplicación"}}}};
+       "Inicializa el sistema a partir del archivo y almacena las palabras en sentido inverso"},
+      {"puntaje palabra",
+       "El comando permite conocer la puntuación que puede obtenerse con una palabra dada"},
+      {"salir", "Termina la ejecución de la aplicación"}}
+    }
+};
 
-// TAD´s
-// El TAD de letra sirve para almacenar la información de una letra
+/**** TAD´s ***/
+/* El TAD letra es usado para almacenar la información de una letra y su puntuación */
 struct Letra {
-  char letra;
-  int puntos;
+    char letra;
+    int puntos;
 };
 
-// El TAD de palabra sirve para almacenar la información de una palabra
+/* El TAD palabra es usado para almacenar la información de una palabra y el total de puntos */
 struct Palabra {
-  string pal;
-  int puntos;
+    string palabra;
+    int puntos;
 };
 
-// El TAD de diccionario sirve para almacenar palabras
-struct Diccionarios {
-  list<Palabra> palabras;
-  list<Palabra> palabras_inversas;
+/* El TAD diccionario es usado para almacenar una lista de palabras y otra de palabras inversas */
+struct Diccionario {
+    list<Palabra> palabras;
+    list<Palabra> palabras_inversas;
+
+    public:
+        bool palabras_is_empty(){
+            if (palabras.empty()){
+                return true;
+            } else { return false; }
+        }
+        bool palabras_inversas_is_empty(){
+            if (palabras_inversas.empty()){
+                return true;
+            } else { return false; }
+        }
 };
 
-// cabezaras de funciónes
+/* Cabezaras de funciónes a usar */
 list<Letra> leerletras(string nombreArch);
 void executeCommand(string command);
-list<Palabra>::iterator buscarEnDiccionario(list<Palabra> &listaDePalabras,
-                                            const string &word);
-string puntaje_palabra(string word, list<Letra> letras,
-                       Diccionarios &diccionario);
-bool cargarDiccionario(const string &archivo, Diccionarios &diccionario);
+bool inicializarDiccionario(const string& archivo, Diccionario& diccionario, bool invetir);
+list<Palabra>::iterator buscarEnDiccionario(list<Palabra> &listaDePalabras, const string &word);
+string puntaje_palabra(string word, list<Letra> letras, Diccionario &diccionario);
 
 // main del programa
-int main() {
-  string command, nameFile;
-  Diccionarios diccionario;
-  nameFile = "letras.txt";
+int main(){
+    string command;
+    Diccionario diccionario;
 
-  // leer letras
-  list<Letra> letras = leerletras(nameFile);
-  if (letras.empty()) {
-    cout << "No se pudo leer el archivo de letras\n\n" << endl;
-    return 0;
-  }
-  cout << "ayuda                      Lista de comandos disponibles" << endl;
-  cout << "ayuda nombre_comando       Descripción del comando" << endl;
-
-  while (true) {
-    cout << " $  ";
-    getline(cin, command);
-
-    if (command.substr(0, 5) == "ayuda") {
-      executeCommand(command);
-    } else if (command == "inicializar diccionario.txt") {
-      cargarDiccionario("diccionario.txt", diccionario);
-
-      cout << "Funcion de inicialización de diccionario\n";
-    } else if (command == "iniciar_inverso diccionario.txt") {
-      // código para cualquier otro caso
-      cout << "Funcion de iniciar_inverso\n";
-    } else if (command == "iniciar_puntaje palabra") {
-      cout << "\nFuncion de puntaje de palabra ingresada\n";
-      cout << "Ingrese la palabra: ";
-      string word;
-      cin >> word;
-      // llamar funcion puntaje palabra
-      cout << puntaje_palabra(word, letras, diccionario);
-    } else if (command == "salir") {
-      exit(0);
-    } else {
-      cout << "Comando no reconocido" << endl;
+    // leer letras, esto deberia estar en un ciclo por si no se puede leer.
+    list<Letra> letras = leerletras("letras.txt");
+    if (letras.empty()) {
+        cout << "No se pudo leer el archivo de letras" << endl;
+        return 0;
     }
-    command = "";
-  }
-}
+    // Información sobre el uso de la terminal
+    cout << endl << "ayuda                      Lista de comandos disponibles" << endl;
+    cout << "ayuda nombre_comando       Descripción del comando" << endl;
 
-// lee un archivo txt que contiene las letras de un idioma y sus respectivos
-// puntajes
-list<Letra> leerletras(string nombreArch) {
-  list<Letra> letras;
-  Letra letra;
-  string line;
-  // Se abre el archivo de texto con el nombre dado
-  ifstream myfile(nombreArch);
-  if (myfile.is_open()) {
-    // Se lee el archivo linea por linea
-    while (getline(myfile, line)) {
-      istringstream iss(line);
-      // Se lee la letra y el puntaje de la linea
-      iss >> letra.letra >> letra.puntos;
-      // Se agrega la letra  a la lista de letras
-      letras.push_back(letra);
-    }
-    myfile.close();
-    return letras;
-  } else {
-    cout << "No se pudo leer el archivo";
-    // retorna un lista vacia en caso de no poder leer el archivo
-    return letras;
-  }
-}
-
-//
-void executeCommand(string command) {
-  if (command == "ayuda") {
-    cout << endl
-         << "Estos son los comandos disponibles para JaveScrabble " << endl;
-    for (const auto &section : ayuda) {
-      cout << endl << section.first << "\n";
-
-      for (const auto &command : section.second) {
-        cout << "     " << left << setw(40) << command.first << command.second
-             << endl;
-      }
-      cout << endl;
-    }
-  } else if (command.substr(0, 6) == "ayuda ") {
-    string specificCommand = command.substr(6);
-    bool encontrado = false;
-    for (const auto &section : ayuda) {
-      for (const auto &entrada : section.second) {
-        if (entrada.first.compare(specificCommand) == 0) {
-          cout << "     " << left << setw(40) << entrada.first << entrada.second
-               << endl;
-          encontrado = true;
-          break;
+    while (true) {
+        // Entrada de comandos 
+        cout << " $  ";
+        getline(cin, command);
+        // Bloque de condicionales para cada comando
+        if (command.substr(0, 5) == "ayuda") {
+            executeCommand(command);
         }
-      }
-      if (!encontrado) {
-        cout << "Comando no encontrado." << endl;
-      }
-      cout << endl;
+        else if (command == "inicializar diccionario.txt") {
+            if (!diccionario.palabras_is_empty()){
+                cout << "(Diccionario ya inicializado) El diccionario ya ha sido inicializado." << endl;
+            } else {
+                inicializarDiccionario("diccionario.txt", diccionario, false);
+            }
+        } else if (command == "iniciar_inverso diccionario.txt") {
+            if (!diccionario.palabras_inversas_is_empty()){
+                cout << "(Diccionario ya inicializado) El diccionario inverso ya ha sido inicializado." << endl;
+            } else {
+                inicializarDiccionario("diccionario.txt", diccionario, true);
+            }        
+        } else if (command == "puntaje palabra") {
+            cout << "\nFuncion de puntaje de palabra ingresada\n";
+            cout << "Ingrese la palabra: ";
+            string word;
+            cin >> word;
+            cout << puntaje_palabra(word, letras, diccionario);
+        } else if (command == "salir") {
+            exit(0);
+        } else {
+            cout << "Comando no reconocido" << endl;
+        }
+        command = "";
     }
-  } else {
-    cout << "Comando no encontrado" << endl;
-  }
 }
 
-// Función Inicializar ddiccionario
-bool cargarDiccionario(const string &archivo, Diccionarios &diccionario) {
-  ifstream fin(archivo);
-
-  if (!fin.is_open()) {
-    cout << "Archivo no existe " << archivo
-         << " no existe o no puede ser leído." << endl;
-    return false;
-  }
-
-  string palabra;
-  while (fin >> palabra) {
-    if (all_of(palabra.begin(), palabra.end(), ::isalpha)) {
-      Palabra p;
-      p.pal = palabra;
-      diccionario.palabras.push_back(p);
+/* Función encargada de leer un archivo txt que contiene las letras del ingles y sus respectivos puntajes */
+list<Letra> leerletras(string nombreArch) {
+    list<Letra> letras;
+    Letra letra;
+    string line;
+    // Se abre el archivo de texto con el nombre dado
+    ifstream myfile(nombreArch);
+    if (myfile.is_open()) {
+        // Se lee el archivo linea por linea
+        while (getline(myfile, line)) {
+            istringstream iss(line);
+            // Se lee la letra y el puntaje de la linea
+            iss >> letra.letra >> letra.puntos;
+            // Se agrega la letra  a la lista de letras
+            letras.push_back(letra);
+        }
+        myfile.close();
+        return letras;
     }
-  }
-  fin.close();
-
-  cout << "Se ha inicializado correctamente \n";
-  return true;
+    else {
+        cout << "El archivo letras.txt no ha sido leído, se requiere revisión de archivo.";
+        // retorna un lista vacia en caso de no poder leer el archivo
+        return letras;
+    }
 }
 
-// busca la posicion de la palabra en la lista de palbras del diccionario, si no
-// se encuentra retorna un apuntador al final de la lista
-list<Palabra>::iterator buscarEnDiccionario(list<Palabra> &listaDePalabras,
-                                            const string &word) {
-  for (auto it = listaDePalabras.begin(); it != listaDePalabras.end(); ++it) {
-    if (it->pal == word) {
-      return it;
+/* Función encargada de dar información sobre los comandos y sus funcionalidades */
+void executeCommand(string command) {
+    if (command == "ayuda") {
+        cout << endl
+             << "Estos son los comandos disponibles para JaveScrabble " << endl;
+        for (const auto &section : ayuda) {
+            cout << endl << section.first << "\n";
+
+            for (const auto &command : section.second) {
+                cout << "     " << left << setw(40) << command.first << command.second << endl;
+            }
+            cout << endl;
+        }
+    } else if (command.substr(0, 6) == "ayuda ") {
+        string specificCommand = command.substr(6);
+        bool encontrado = false;
+        for (const auto &section : ayuda) {
+            for (const auto &entrada : section.second) {
+                if (entrada.first.compare(specificCommand) == 0) {
+                    cout << "     " << left << setw(40) << entrada.first << entrada.second << endl;
+                    encontrado = true;
+                    break;
+                }
+            }
+            if (!encontrado) {
+                cout << "Comando no encontrado." << endl;
+            }
+            cout << endl;
+        }
+    } else {
+        cout << "Comando no encontrado" << endl;
     }
-  }
-  return listaDePalabras.end();
 }
 
-// calcula el puntaje de una palabra
-string puntaje_palabra(string word, list<Letra> letras,
-                       Diccionarios &diccionario) {
-  int puntaje = 0;
-  string word_inv = word;
-  reverse(word_inv.begin(), word_inv.end());
+/* Función encargada de inicializar el diccionario */
+bool inicializarDiccionario(const string& nomArchivo, Diccionario& diccionario, bool invertir) {
+    ifstream fin(nomArchivo);
+    list<Palabra> listaPalabras;
+    string palabra;
 
-  // Verificar que la palabra contenga solo letras
-  if (!all_of(word.begin(), word.end(), ::isalpha))
-    return "\nLa palabra " + word + " contiene símbolos inválidos\n";
+    if (!fin.is_open()) {
+        cout << "(Archivo no existe) El archivo" << nomArchivo << "no existe o no puede ser leído." << endl;
+        return true;
+    }
 
-  // Verificar que la palabra esté en los diccionarios
-  auto it = buscarEnDiccionario(diccionario.palabras, word);
-  auto it2 = buscarEnDiccionario(diccionario.palabras_inversas, word_inv);
+    while (fin >> palabra) {
+        if (all_of(palabra.begin(), palabra.end(), ::isalpha)) {
+            if (invertir) {
+                reverse(palabra.begin(), palabra.end());
+            }
+            Palabra p;
+            p.palabra = palabra;
+            diccionario.palabras.push_back(p);
+        }
+    }
+    fin.close();
+    string str = (!invertir) ? "diccionario" : "diccionario inverso";
+    cout << "(Resultado exitoso) El " << str << " se ha inicializado correctamente." << endl;
+    return true;
+}
 
-  // sino existe retorna error
-  if (it == diccionario.palabras.end() &&
-      it2 == diccionario.palabras_inversas.end())
-    return "\nLa palabra " + word + " no existe en el diccionario\n";
-  else {
-    // Si la palabra existe en el diccionario, se calcula su puntaje
-    for (char caracter : word)
-      for (const auto letra : letras)
-        if (letra.letra == caracter)
-          puntaje += letra.puntos;
-    // insertamos puntajes al diccionario
-    it->puntos = puntaje;
-    it2->puntos = puntaje;
-  }
+/* Busca la posicion de la palabra en la lista de palbras del diccionario, si no se encuentra retorna un apuntador al final de la lista */
+list<Palabra>::iterator buscarEnDiccionario(list<Palabra> &listaDePalabras, const string &word) {
+    for (auto it = listaDePalabras.begin(); it != listaDePalabras.end(); ++it) {
+        if (it->palabra == word) {
+            return it;
+        }
+    }
+    return listaDePalabras.end();
+}
 
-  return "\nLa palabra " + word +
-         " tiene un puntaje de: " + to_string(puntaje) + "\n";
+/* Calcula el puntaje de una palabra dada segun el puntaje de sus letras */
+string puntaje_palabra(string word, list<Letra> letras, Diccionario &diccionario) {
+    int puntaje = 0;
+    string word_inv = word;
+
+    // Verificar que la palabra contenga solo letras
+    if (!all_of(word.begin(), word.end(), ::isalpha))
+        return "(Letras inválidas) La palabra " + word + "  contiene símbolos inválidos.";
+
+    reverse(word_inv.begin(), word_inv.end());
+
+    // Verificar que la palabra esté en los diccionarios
+    auto it = buscarEnDiccionario(diccionario.palabras, word);
+    auto it2 = buscarEnDiccionario(diccionario.palabras_inversas, word_inv);
+
+    // sino existe retorna error
+    if (it == diccionario.palabras.end() && it2 == diccionario.palabras_inversas.end())
+        return "\nLa palabra " + word + " no existe en el diccionario\n";
+    else {
+        // Si la palabra existe en el diccionario, se calcula su puntaje
+        for (char caracter : word)
+            for (const auto letra : letras)
+                if (letra.letra == caracter)
+                    puntaje += letra.puntos;
+        // insertamos puntajes al diccionario
+        it->puntos = puntaje;
+        it2->puntos = puntaje;
+    }
+
+    return "(Resultado exitoso) La palabra " + word + " tiene un puntaje de: " + to_string(puntaje);
 }
