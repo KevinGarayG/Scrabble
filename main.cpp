@@ -101,12 +101,16 @@ int main(){
                 inicializarDiccionario(command.substr(16), diccionario, true);
             }        
         } else if (command == "puntaje palabra") {
-            cout << "\nFuncion de puntaje de palabra ingresada\n";
-            cout << "Ingrese la palabra: ";
-            string word;
-            cin >> word;
-            cin.ignore();
-            cout << puntaje_palabra(word, letras, diccionario) << endl;
+            if (diccionario.palabras_is_empty() || diccionario.palabras_inversas_is_empty()){
+              cout << "El diccionario y diccionario inverso no han sido inicializados.\n" << endl;
+            } else {
+              cout << "\nFuncion de puntaje de palabra ingresada\n";
+              cout << "Ingrese la palabra: ";
+              string word;
+              cin >> word;
+              cin.ignore();
+              cout << puntaje_palabra(word, letras, diccionario) << endl;
+            }
         } else if (command == "salir") {
             exit(0);
         } else {
